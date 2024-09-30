@@ -5,6 +5,10 @@ package twitter;
 
 import java.util.List;
 import java.util.Set;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 
 /**
  * Extract consists of methods that extract information from a list of tweets.
@@ -24,7 +28,15 @@ public class Extract {
      *         every tweet in the list.
      */
     public static Timespan getTimespan(List<Tweet> tweets) {
-        throw new RuntimeException("not implemented");
+    	if (tweets.isEmpty()) {
+    		return new Timespan(Instant.EPOCH, Instant.EPOCH);
+    	}
+    	
+        // Get the minimum and maximum Tweet based on their timestamps
+        Instant start = Collections.min(tweets, Comparator.comparing(Tweet::getTimestamp)).getTimestamp();
+        Instant end = Collections.max(tweets, Comparator.comparing(Tweet::getTimestamp)).getTimestamp();
+
+        return new Timespan(start, end);
     }
 
     /**
@@ -43,7 +55,18 @@ public class Extract {
      *         include a username at most once.
      */
     public static Set<String> getMentionedUsers(List<Tweet> tweets) {
-        throw new RuntimeException("not implemented");
+        Set<String> res = new HashSet<>();
+        for (Tweet tweet : tweets) {
+            String text = tweet.getText();
+            // Split the tweet text into words
+            String[] words = text.split("\\s+");              
+            for (String word : words) {
+                if (word.startsWith("@") && word.length() > 1) {
+                    // Add the username without the "@" symbol
+                    res.add(word.substring(1));
+                }
+            }
+        }
+        return res;
     }
-
 }
