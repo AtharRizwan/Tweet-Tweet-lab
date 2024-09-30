@@ -3,7 +3,11 @@
  */
 package twitter;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Filter consists of methods that filter a list of tweets for those matching a
@@ -26,9 +30,15 @@ public class Filter {
      * @return all and only the tweets in the list whose author is username,
      *         in the same order as in the input list.
      */
-    public static List<Tweet> writtenBy(List<Tweet> tweets, String username) {
-        throw new RuntimeException("not implemented");
-    }
+	public static List<Tweet> writtenBy(List<Tweet> tweets, String username) {
+	    List<Tweet> res = new ArrayList<>();
+	    for (Tweet tweet : tweets) {
+	        if (tweet.getAuthor().equalsIgnoreCase(username)) {
+	            res.add(tweet);
+	        }
+	    }
+	    return res;
+	}
 
     /**
      * Find tweets that were sent during a particular timespan.
@@ -40,9 +50,20 @@ public class Filter {
      * @return all and only the tweets in the list that were sent during the timespan,
      *         in the same order as in the input list.
      */
-    public static List<Tweet> inTimespan(List<Tweet> tweets, Timespan timespan) {
-        throw new RuntimeException("not implemented");
-    }
+	public static List<Tweet> inTimespan(List<Tweet> tweets, Timespan timespan) {
+	    List<Tweet> res = new ArrayList<>();
+	    // Extract the start and end timestamps from the Timespan
+	    Instant start = timespan.getStart();
+	    Instant end = timespan.getEnd();
+	    for (Tweet tweet : tweets) {
+	        Instant timeToCheck = tweet.getTimestamp(); 
+	        // Check if the tweet's timestamp is within the timespan
+	        if (!timeToCheck.isBefore(start) && !timeToCheck.isAfter(end)) {
+	            res.add(tweet);
+	        }
+	    }
+	    return res;
+	}
 
     /**
      * Find tweets that contain certain words.
@@ -59,8 +80,27 @@ public class Filter {
      *         so "Obama" is the same as "obama".  The returned tweets are in the
      *         same order as in the input list.
      */
-    public static List<Tweet> containing(List<Tweet> tweets, List<String> words) {
-        throw new RuntimeException("not implemented");
-    }
+	public static List<Tweet> containing(List<Tweet> tweets, List<String> words) {
+	    List<Tweet> result = new ArrayList<>();
+	    // A hashmap provides O(1) time lookup
+	    Set<String> map = new HashSet<>();
+	    for (String word : words) {
+	        map.add(word.toLowerCase());
+	    }
+	    for (Tweet tweet : tweets) {
+	        String tweetText = tweet.getText();
+	        // Split the tweet text into words
+	        String[] wordsInTweet = tweetText.split("\\s+");
+	        // Look for the word in hashmap
+	        for (String word : wordsInTweet) {
+	            if (map.contains(word.toLowerCase())) {
+	                result.add(tweet);
+	                // Match found so break;
+	                break;
+	            }
+	        }
+	    }
+	    return result;
+	}
 
 }
