@@ -6,6 +6,8 @@ package twitter;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.*;
+import java.util.*;
 
 /**
  * SocialNetwork provides methods that operate on a social network.
@@ -41,7 +43,30 @@ public class SocialNetwork {
      *         either authors or @-mentions in the list of tweets.
      */
     public static Map<String, Set<String>> guessFollowsGraph(List<Tweet> tweets) {
-        throw new RuntimeException("not implemented");
+        Map<String, Set<String>> followsGraph = new HashMap<>();
+        // Regex to find @-mentions in the tweet text
+        Pattern patt = Pattern.compile("(?<!\\w)@(\\w+)");
+        for (Tweet tweet : tweets) {
+            String author = tweet.getAuthor().toLowerCase();
+            String content = tweet.getText();
+            Matcher matcher = patt.matcher(content);
+            // Use a set to track unique mentions in the tweet
+            Set<String> mentions = new HashSet<>();
+            // Loop through all mentions found in the tweet content
+            while (matcher.find()) {
+                String mentionedUser = matcher.group(1).toLowerCase();
+                // Add to mentions if it is not a self-mention
+                if (!mentionedUser.equals(author)) {
+                    mentions.add(mentionedUser);
+                }
+            }
+            // Only add the author if there are mentions
+            if (!mentions.isEmpty()) {
+                followsGraph.putIfAbsent(author, new HashSet<>());
+                followsGraph.get(author).addAll(mentions);
+            }
+        }
+        return followsGraph;
     }
 
     /**
@@ -54,7 +79,26 @@ public class SocialNetwork {
      *         descending order of follower count.
      */
     public static List<String> influencers(Map<String, Set<String>> followsGraph) {
-        throw new RuntimeException("not implemented");
+        Map<String, Integer> count = new HashMap<>();
+        // Count followers for each user
+        for (Set<String> followed : followsGraph.values()) {
+            for (String followedUser : followed) {
+                count.put(followedUser, count.getOrDefault(followedUser, 0) + 1);
+            }
+        }
+        // Create a list of influencers based on the follower counts
+        List<String> influencers = new ArrayList<>(count.keySet());
+        // Sort the influencers by follower count in descending order
+        influencers.sort((user1, user2) -> {
+            int countComparison = Integer.compare(count.get(user2), count.get(user1));
+            // If counts are equal, sort alphabetically
+            if (countComparison == 0) {
+                return user1.compareTo(user2);
+            }
+            return countComparison;
+        });
+        return influencers;
     }
+
 
 }
